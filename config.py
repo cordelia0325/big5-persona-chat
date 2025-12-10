@@ -105,7 +105,7 @@ class BertConfig:
     num_attention_heads: int = 12
     
     # Fine-tuning settings
-    learning_rate: float = 2e-4
+    learning_rate: float = 2e-5
     warmup_steps: int = 500
     weight_decay: float = 0.01
 
