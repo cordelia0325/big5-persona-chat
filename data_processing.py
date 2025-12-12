@@ -83,6 +83,8 @@ class Persona:
     
     def to_system_prompt(self) -> str:
         """Convert persona to system prompt for LLM"""
+        # Generate behavior presets based on Big-5 traits
+        behavior_presets = self._generate_behavior_presets()
         return SYSTEM_PROMPT_TEMPLATE.format(
             name=self.name,
             age=self.age,
@@ -96,8 +98,33 @@ class Persona:
             social_relationship=self.social_relationship,
             recent_worry_or_anxiety=self.recent_worry_or_anxiety,
             tone=self.tone,
-            hobby=self.hobby
+            hobby=self.hobby,
+            behavior_presets=behavior_presets
         )
+    
+    def _generate_behavior_presets(self) -> str:
+        """Generate behavior presets based on Big-5 personality traits using big5_list.json"""
+        import os
+        
+        # Load Big-5 descriptions from data file
+        big5_list_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "big5_list.json")
+        
+        try:
+            with open(big5_list_path, 'r', encoding='utf-8') as f:
+                big5_descriptions = json.load(f)[0]  # First element contains the descriptions
+        except (FileNotFoundError, json.JSONDecodeError, IndexError):
+            # Fallback if file not found
+            return ""
+        
+        big5 = self.get_big5_dict()
+        presets = []
+        
+        for dimension, level in big5.items():
+            if dimension in big5_descriptions and level in big5_descriptions[dimension]:
+                description = big5_descriptions[dimension][level]
+                presets.append(f"**{dimension} ({level.capitalize()})**: {description}")
+        
+        return '\n\n'.join(presets)
     
     def get_big5_dict(self) -> Dict[str, str]:
         """Parse Big5 string to dictionary"""
