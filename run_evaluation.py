@@ -176,17 +176,23 @@ class EvaluationPipeline:
             selected = random.sample(all_questions, num_to_select)
             
             for question in selected:
-                print(f"\nAsking the Subject BFI Q{question.id}...", end="", flush=True)
+                print(f"\n[DEBUG] Asking Llama-3 Q{question.id}...", end="", flush=True)
                 
                 # Generate Response
                 if self.engine:
-                    response_text, _ = self.engine.generate_response(
-                        user_message=question.question,
-                        persona=persona,
-                        conversation_history=[],
-                        memories=[]
-                    )
+                    try:
+                        response_text, _ = self.engine.generate_response(
+                            user_message=question.question,
+                            persona=persona,
+                            conversation_history=[],
+                            memories=[]
+                        )
+                        print(f" GPT-4 Scoring...", end="", flush=True)
+                    except Exception as e:
+                        print(f" [ERROR: {e}]")
+                        response_text = f"Error generating response: {e}"
                 else:
+                    print(f" [NO ENGINE - using fallback]")
                     # Simulation mode for testing without GPU
                     response_text = self._simulate_response(persona, question.question)
 
@@ -203,10 +209,10 @@ class EvaluationPipeline:
                 response_obj.score = score
 
                 # Debug Output
-                # print(f"\n  [Q ({dimension})]: {question.question}")
-                # print(f"  [A]: {response_text}")   # Print for human annotators to evaluate
-                # print(f"  [LLM Evaluator Score]: {score} / 5 ({dimension})")
-                # print("-" * 20)
+                print(f"\n  [Q ({dimension})]: {question.question}")
+                print(f"  [A]: {response_text}")
+                print(f"  [LLM Evaluator Score]: {score} / 5 ({dimension})")
+                print("-" * 20)
 
                 
                 responses.append(response_obj)
@@ -229,25 +235,31 @@ class EvaluationPipeline:
         selected_questions = random.sample(all_random_qs, min(num_questions, len(all_random_qs)))
         
         for i, question_text in enumerate(selected_questions):
-            print(f"\nAsking the Subject Random Q{i+1}...", end="", flush=True)
+            print(f"\n[DEBUG] Asking Llama-3 Random Q{i+1}...", end="", flush=True)
             
             # Generate Response
             if self.engine:
-                response_text, _ = self.engine.generate_response(
-                    user_message=question_text,
-                    persona=persona
-                )
+                try:
+                    response_text, _ = self.engine.generate_response(
+                        user_message=question_text,
+                        persona=persona
+                    )
+                    print(f" Done.", end="", flush=True)
+                except Exception as e:
+                    print(f" [ERROR: {e}]")
+                    response_text = f"Error generating response: {e}"
             else:
+                print(f" [NO ENGINE - using fallback]")
                 response_text = self._simulate_response(persona, question_text)
 
             # Evaluate Consistency (Keyword/Heuristic based for now, or GPT-4 if configured)
             adjustments = self.random_evaluator.evaluate_response(response_text, question_text)
 
             # Debug Output
-            # print(f"\n  [Random Q]: {question.question}")
-            # print(f"  [A]: {response_text}")   # Print for human annotators to evaluate
-            # print(f"  [LLM Evaluator Result]: {adjustments}") # Review LLM's evaluation after human rating
-            # print("-" * 20)
+            print(f"\n  [Random Q]: {question_text}")
+            print(f"  [A]: {response_text}")
+            print(f"  [Adjustment Scores]: {adjustments}")
+            print("-" * 20)
             
             # Store Response (Dimension set to 'Random' to avoid skewing BFI scores)
             responses.append(InterviewResponse(
@@ -462,7 +474,7 @@ def main():
         '--n-trials',
         type=int,
         default=3,
-        help='Number of independent trials per persona (Default: 3, per paper Section 9.1.2)'
+        help='Number of independent trials per persona (Default: 3)'
     )
     parser.add_argument(
         '--llama-path',
