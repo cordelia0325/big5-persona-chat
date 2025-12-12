@@ -63,8 +63,8 @@ This project develops a virtual agent capable of simulating nuanced human conver
 
 ```bash
 # Clone the repository
-git clone https://github.com/cordelia0325/humanized-conversation-with-big5-personality.git
-cd humanized-conversation-with-big5-personality
+git clone https://github.com/cordelia0325/big5-persona-chat.git
+cd big5-persona-chat
 
 # Create virtual environment
 python -m venv venv
@@ -81,7 +81,7 @@ pip install bitsandbytes accelerate
 
 ```bash
 # 1. Prepare your persona dataset (JSON format)
-# Place in data/big5-1024-persona.json
+# Place in data/big5-persona.json
 
 # 2. Create stratified train/val/test splits
 python make_stratified_splits.py
