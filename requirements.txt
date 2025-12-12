@@ -1,0 +1,29 @@
+# Requirements
+
+# Core dependencies
+torch>=2.0.0
+transformers>=4.36.0
+numpy>=1.24.0
+pandas>=2.0.0
+
+# PEFT for efficient fine-tuning
+peft>=0.7.0
+bitsandbytes>=0.41.0  # For QLoRA quantization
+trl>=0.8.0
+
+# BERT and sentence embeddings
+sentence-transformers>=2.2.0
+
+# Flask API
+flask>=3.0.0
+flask-cors>=4.0.0
+
+# Data processing
+tqdm>=4.65.0
+
+# Evaluation with GPT-4
+# openai>=1.0.0
+
+# Optional: for better logging
+# wandb>=0.15.0
+# tensorboard>=2.14.0
