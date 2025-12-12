@@ -281,7 +281,8 @@ class EvaluationPipeline:
     def evaluate_all_personas(
         self,
         num_samples: Optional[int] = None,
-        questions_per_dimension: int = 5
+        questions_per_dimension: int = 5,
+        num_trials: int = 3
     ) -> Dict:
         """
         Execute evaluation on the full dataset or a subset.
@@ -293,12 +294,14 @@ class EvaluationPipeline:
             personas_to_eval = random.sample(personas_to_eval, num_samples)
         
         logger.info(f"Queued {len(personas_to_eval)} personas for evaluation.")
+        logger.info(f"Each persona will be evaluated with {num_trials} trials.")
         
         for persona in tqdm(personas_to_eval, desc="Evaluating Personas"):
             try:
                 result = self.evaluate_persona(
                     persona,
-                    questions_per_dimension=questions_per_dimension
+                    questions_per_dimension=questions_per_dimension,
+                    num_trials=num_trials
                 )
                 self.aggregator.add_result(result)
             except Exception as e:
@@ -396,10 +399,11 @@ def run_full_evaluation(args):
     logger.info(f"Loaded {len(pipeline.bfi_loader.questions)} BFI questions.")
     
     # 4. Run Evaluation
-    logger.info(f"Starting evaluation of {args.num_samples} samples...")
+    logger.info(f"Starting evaluation of {args.num_samples} samples with {args.n_trials} trials each...")
     results = pipeline.evaluate_all_personas(
         num_samples=args.num_samples,
-        questions_per_dimension=args.questions_per_dim
+        questions_per_dimension=args.questions_per_dim,
+        num_trials=args.n_trials
     )
     
     # 5. Save and Display Results
