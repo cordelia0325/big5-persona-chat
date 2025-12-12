@@ -111,7 +111,7 @@ python make_stratified_splits.py
 ├── make_stratified_splits.py    # Dataset splitting (CRITICAL)
 │
 ├── data/
-│   ├── big5-1024-persona.json   # Full persona dataset
+│   ├── big5-persona.json        # Full persona dataset
 │   ├── train_dataset.json       # Training split (generated)
 │   ├── validation_dataset.json  # Validation split (generated)
 │   ├── test_dataset.json        # Test split (generated)
@@ -202,7 +202,7 @@ export OPENAI_API_KEY="your-api-key"
 # Run evaluation on test set
 python run_evaluation.py \
   --test-dataset-path data/test_dataset.json \
-  --model-path models/run_YYYYMMDD_HHMMSS/response_generator \
+  --llama-path models/run_YYYYMMDD_HHMMSS/response_generator \
   --bert-path models/run_YYYYMMDD_HHMMSS/memory_selector/bert_memory_selector.pt \
   --n-trials 3 \
   --questions-per-dim 5
@@ -210,8 +210,8 @@ python run_evaluation.py \
 # Generate evaluation report
 python run_evaluation.py \
   --test-dataset-path data/test_dataset.json \
-  --model-path models/run_YYYYMMDD_HHMMSS/response_generator \
-  --output-report ouputs/evaluation_report.json
+  --llama-path models/run_YYYYMMDD_HHMMSS/response_generator \
+  --output-dir ouputs/evaluation_report.json
 ```
 
 ### Inference
@@ -336,7 +336,7 @@ label = 1 if cosine_similarity(response, memory) > 0.7 else 0
 
 ### Evaluation Protocol
 
-Following the structured interview methodology (Section 7):
+Following the structured interview methodology:
 
 1. **BFI-44 Assessment**: 5 randomly selected questions per dimension
 2. **Random Questions**: 5 questions from a pool of 15 behavioral queries
@@ -346,67 +346,6 @@ Following the structured interview methodology (Section 7):
    - **hit@k**: Number of dimensions correctly predicted
    - **Dimension Accuracy**: Percentage of correct high/low classifications
    - **Consistency Score**: Overall personality alignment
-
-## 📈 Reproducing Paper Results
-
-### Step 1: Prepare Environment
-
-```bash
-# Ensure CUDA is available
-python -c "import torch; print(torch.cuda.is_available())"
-
-# Check GPU memory
-nvidia-smi
-```
-
-### Step 2: Data Preparation (CRITICAL)
-
-```bash
-# IMPORTANT: Use stratified splitting
-python make_stratified_splits.py
-
-# Verify balanced representation
-python -c "
-import json
-from collections import Counter
-
-for split in ['train', 'validation', 'test']:
-    with open(f'data/{split}_dataset.json') as f:
-        data = json.load(f)
-    combos = Counter(p['big-5'] for p in data)
-    print(f'{split}: {len(combos)}/32 combinations')
-    assert len(combos) == 32, f'Missing combinations in {split}!'
-print('All splits have balanced representation')
-"
-```
-
-### Step 3: Training
-
-```bash
-# Train both models (requires ~10 hours on A100)
-python train.py \
-  --train-dataset-path data/train_dataset.json \
-  --val-dataset-path data/validation_dataset.json \
-  --train-all \
-  --seed 42 \
-  2>&1 | tee training.log
-```
-
-### Step 4: Evaluation
-
-```bash
-# Run evaluation with 3 trials per persona
-python run_evaluation.py \
-  --test-dataset-path data/test_dataset.json \
-  --model-path outputs/run_YYYYMMDD_HHMMSS/response_generator \
-  --bert-path outputs/run_YYYYMMDD_HHMMSS/memory_selector/bert_memory_selector.pt \
-  --n-trials 3 \
-  --evaluator gpt-4-turbo \
-  --output-report results/evaluation_report.json
-
-# Analyze results
-python analyze_results.py results/evaluation_report.json
-```
 
 ## ⚙️ Configuration
 
