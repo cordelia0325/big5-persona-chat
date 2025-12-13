@@ -200,7 +200,7 @@ class ResponseGenerator:
         context: List[Dict[str, str]],
         persona: str,
         selected_memory: Optional[str] = None,
-        max_new_tokens: int = 256,
+        max_new_tokens: int = 512,
         temperature: float = None,
         top_p: float = None,
         top_k: int = None
