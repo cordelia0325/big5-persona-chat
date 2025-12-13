@@ -96,7 +96,7 @@ class InferenceEngine:
         conversation_history: List[Dict[str, str]] = None,
         memories: List[str] = None,
         temperature: float = 0.7,
-        max_new_tokens: int = 256
+        max_new_tokens: int = 512
     ) -> Tuple[str, Optional[str]]:
         """
         Generate a personality-consistent response
