@@ -56,11 +56,25 @@ class Persona:
     additional_information: str
     
     @classmethod
-    def from_dict(cls, data: dict) -> 'Persona':
+    def from_dict(cls, data: dict, fallback_index: int = 0) -> 'Persona':
         """Create Persona from dictionary"""
         profile = data.get('profile', {})
+        
+        # Handle index: try 'index', then parse from 'uid', then use fallback
+        index = data.get('index')
+        if index is None:
+            uid = data.get('uid', '')
+            # Parse index from uid like "train-0000" or "test-0001"
+            if uid and '-' in uid:
+                try:
+                    index = int(uid.split('-')[-1])
+                except ValueError:
+                    index = fallback_index
+            else:
+                index = fallback_index
+        
         return cls(
-            index=data.get('index', 0),
+            index=index,
             big5=data.get('big-5', ''),
             name=profile.get('name', ''),
             gender=profile.get('gender', ''),
@@ -215,7 +229,8 @@ class DataLoader:
             with open(filepath, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             
-            self.personas = [Persona.from_dict(item) for item in data]
+            # Pass fallback_index to ensure unique indices
+            self.personas = [Persona.from_dict(item, fallback_index=i) for i, item in enumerate(data)]
             logger.info(f"Loaded {len(self.personas)} personas")
         except FileNotFoundError:
             logger.warning(f"File not found: {filepath}")
