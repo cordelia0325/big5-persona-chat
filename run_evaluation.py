@@ -152,6 +152,8 @@ class EvaluationPipeline:
 
         print("\n" + "-"*40)
         print(f"Session Complete for {persona.name}")
+        print(f"Scores: {result.predicted_scores.to_dict()}")
+        print(f"Accuracy: {result.dimension_accuracy}")
         print(f"Consistency Score: {result.consistency_score:.2f}")
         print("-"*40 + "\n")
         
@@ -205,15 +207,23 @@ class EvaluationPipeline:
                 )
 
                 # Score Response (using GPT-4 or Keyword)
-                score = self.interview._score_single_response(response_obj)
-                response_obj.score = score
+                # Raw Score
+                raw_score = self.interview._score_single_response(response_obj)
+                response_obj.score = raw_score
+
+                # Effective Score
+                is_reverse = question.id in self.personality_evaluator.reverse_items
+                if is_reverse:
+                    final_score = 6 - raw_score
+                    score_str = f"{raw_score} => {final_score} (Reverse)"
+                else:
+                    score_str = f"{raw_score}"
 
                 # Debug Output
                 print(f"\n  [Q ({dimension})]: {question.question}")
                 print(f"  [A]: {response_text}")
-                print(f"  [LLM Evaluator Score]: {score} / 5 ({dimension})")
+                print(f"  [Score]: {score_str} / 5 ({dimension})")
                 print("-" * 20)
-
                 
                 responses.append(response_obj)
         
